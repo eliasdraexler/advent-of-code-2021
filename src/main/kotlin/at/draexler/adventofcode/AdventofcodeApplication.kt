@@ -7,9 +7,53 @@ import kotlin.system.measureTimeMillis
 fun main(args: Array<String>) {
 //    println("Sonar Sweep 1 Time: ${measureTimeMillis { sonarSweep1() }}")
 //    println("Sonar Sweep 2 Time: ${measureTimeMillis { sonarSweep2() }}")
-    println("Day 2 Puzzle 1 Time: ${measureTimeMillis { day2Puzzle1() }}")
-    println("Day 2 Puzzle 1 Time: ${measureTimeMillis { day2Puzzle2() }}")
+//    println("Day 2 Puzzle 1 Time: ${measureTimeMillis { day2Puzzle1() }}")
+//    println("Day 2 Puzzle 2 Time: ${measureTimeMillis { day2Puzzle2() }}")
+//    println("Day 3 Puzzle 1 Time: ${measureTimeMillis { day3Puzzle1() }}")
+    println("Day 3 Puzzle 2 Time: ${measureTimeMillis { day3Puzzle2() }}")
 }
+
+fun day3Puzzle2() {
+    println("Day 3 Puzzle 2")
+    val list = readFileAsLinesUsingUseLines("inputs/puzzle_3_2.txt")
+    val oxygenGeneratorRating = findNumber(list, 0, true)
+    val scrubberRating = findNumber(list, 0, false)
+
+    println("Result: ${oxygenGeneratorRating * scrubberRating}")
+}
+
+fun findNumber(list: List<String>, idx: Int, getMostCommon: Boolean): Int {
+    if (list.size == 1) {
+        return Integer.parseInt(list[0], 2)
+    }
+    val count = buildCountOnes(list, idx)
+    val newNumber = if (getMostCommon) buildMostCommon(count, list.size) else buildLeastCommon(count, list.size)
+    return findNumber(list.partition { it[idx] == newNumber }.first, idx + 1, getMostCommon)
+}
+
+private fun buildMostCommon(count: Int, size: Int) = if (count * 2 >= size) '0' else '1'
+
+private fun buildLeastCommon(count: Int, size: Int) = if (count * 2 >= size) '1' else '0'
+
+private fun buildCountOnes(list: List<String>, idx: Int): Int = list.count { it[idx] == '1' }
+
+
+fun day3Puzzle1() {
+    println("Day 3 Puzzle 1")
+    val list = readFileAsLinesUsingUseLines("inputs/puzzle_3_1.txt")
+    val counts = IntArray(12)
+    list.forEach { report ->
+        report.forEachIndexed { index, char ->
+            if (char == '1') counts[index] += 1
+        }
+    }
+    val gamma = Integer.parseInt(counts.map { if (it > list.size / 2) "1" else "0" }.joinToString (separator = "") { it }, 2)
+    val epsilon = Integer.parseInt(counts.map { if (it > list.size / 2) "0" else "1" }.joinToString (separator = "") { it }, 2)
+    println("Gamma: $gamma")
+    println("Epsilon: $epsilon")
+    println("Result: ${gamma * epsilon}")
+}
+
 
 private fun sonarSweep1() {
     println("Sonar Sweep 1")
