@@ -4,6 +4,7 @@ import java.awt.Point
 import java.io.File
 import java.lang.Integer.max
 import java.lang.Integer.min
+import java.util.*
 import kotlin.system.measureTimeMillis
 
 
@@ -20,59 +21,727 @@ fun main(args: Array<String>) {
 //    println("Day 7 Puzzle 1 Time: ${measureTimeMillis { day7Puzzle1() }}")
 //    println("Day 8 Puzzle 1 Time: ${measureTimeMillis { day8Puzzle1() }}")
 //    println("Day 9 Puzzle 1 Time: ${measureTimeMillis { day9Puzzle1() }}")
-    println("Day 9 Puzzle 2 Time: ${measureTimeMillis { day9Puzzle2() }}")
+//    println("Day 9 Puzzle 2 Time: ${measureTimeMillis { day9Puzzle2() }}")
+//    println("Day 10 Puzzle 1 Time: ${measureTimeMillis { day10Puzzle1() }}")
+//    println("Day 11 Puzzle 1 Time: ${measureTimeMillis { day11Puzzle1() }}")
+//    println("Day 12 Puzzle 1 Time: ${measureTimeMillis { day12Puzzle1() }}")
+//    println("Day 13 Puzzle 1 Time: ${measureTimeMillis { day13Puzzle1() }}")
+//    println("Day 14 Puzzle 1 Time: ${measureTimeMillis { day14Puzzle1() }}")
+//    println("Day 14 Puzzle 2 Time: ${measureTimeMillis { day14Puzzle2() }}")
+//    println("Day 15 Puzzle 1 Time: ${measureTimeMillis { day15Puzzle1() }}")
+//    println("Day 16 Puzzle 1 Time: ${measureTimeMillis { day16Puzzle1() }}")
+    println("Day 17 Puzzle 1 Time: ${measureTimeMillis { day17Puzzle1() }}")
 }
 
-fun day9Puzzle2() {
-    val list = readFileAsLinesUsingUseLines("inputs/puzzle_9_0.txt")
-    val field = list.map { it.toCharArray().map { it.digitToInt() } }.toTypedArray()
-    var result1 = Pair(-1..0, 0)
-    var result2 = Pair(-1..0, 0)
-    var result3 = Pair(-1..0, 0)
-    field.forEachIndexed { lineIdx, line ->
-        line.forEachIndexed { rowIdx, char ->
-            if(char == 9) return@forEachIndexed
-            val basilSize = findBasilSize(field, lineIdx, rowIdx)
-            println("Current Basil size ${basilSize}")
-            when {
-                basilSize.first != result1.first && basilSize.second > result1.second-> {
-                    println("Added as result1")
-                    result3 = result2
-                    result2 = result1
-                    result1 = basilSize
-                }
-                basilSize.first != result2.first && basilSize.first != result1.first && basilSize.second > result2.second -> {
-                    println("Added as result2")
-                    result3 = result2
-                    result2 = basilSize
-                }
-                basilSize.first != result3.first && basilSize.first != result2.first && basilSize.first != result1.first && basilSize.second > result3.second -> {
-                    println("Added as result3")
-                    result3 = basilSize
-                }
-            }
+fun day17Puzzle1() {
+    val targetAreaString =
+        readFileAsLinesUsingUseLines("inputs/puzzle_17_1.txt")[0].replace("target area: ", "").split(", ")
+    val xRangeString = targetAreaString[0].replace("x=", "").split("..")
+    val yRangeString = targetAreaString[1].replace("y=", "").split("..")
+    val xRange = (xRangeString[0].toInt()..xRangeString[1].toInt())
+    val yRange = (yRangeString[0].toInt()..yRangeString[1].toInt())
+    val possibleVelocities = mutableListOf<Point>()
+
+    xRange.forEach { x->
+        yRange.forEach { y ->
 
         }
     }
 
+    println("Result ")
+}
+
+fun day16Puzzle1() {
+    val hexaMap = mapOf(
+        '0' to "0000",
+        '1' to "0001",
+        '2' to "0010",
+        '3' to "0011",
+        '4' to "0100",
+        '5' to "0101",
+        '6' to "0110",
+        '7' to "0111",
+        '8' to "1000",
+        '9' to "1001",
+        'A' to "1010",
+        'B' to "1011",
+        'C' to "1100",
+        'D' to "1101",
+        'E' to "1110",
+        'F' to "1111"
+    )
+    val hexString = readFileAsLinesUsingUseLines("inputs/puzzle_16_0.txt")[0]
+    val binaryString = hexString.map { hexaMap.get(it)!! }.joinToString(separator = "") { it }
+    val versionSum = parsePacket(binaryString)
+
+    println("Result $versionSum")
+}
+
+private fun parsePacket(binaryString: String): Int {
+    var version = 0
+    if (binaryString.replace("0", "").isEmpty()) {
+        return version
+    }
+    val packetVersion = binaryToInt(binaryString.subSequence(0..2))
+    version += packetVersion
+    val packetType = binaryToInt(binaryString.subSequence(3..5))
+    if (packetType == 4) {
+        var lastPackageRead = false
+        var count = 0
+        val listOfNumbers = mutableListOf<String>()
+        while (!lastPackageRead) {
+            lastPackageRead = binaryString[6 + count] == '0'
+            listOfNumbers.add(binaryString.subSequence(7 + count until 11 + count).toString())
+            count += 5
+        }
+        val decimalNumber = binaryToInt(listOfNumbers.joinToString(separator = "") { it })
+        return version + parsePacket(binaryString.subSequence(10 + count until binaryString.length).toString())
+        println("Result")
+    } else {
+        //operator packet
+        val lengthTypeId = binaryString[6]
+        val subPacketLength = if (lengthTypeId == '0') 15 else 11
+        if (subPacketLength == 11) {
+            val countOfSubPackets = binaryToInt(binaryString.subSequence((7 until 7 + subPacketLength)))
+            var startAt = 7 + subPacketLength
+            val subPackets = mutableListOf<String>()
+            (1..countOfSubPackets).forEach {
+                subPackets.add(binaryString.subSequence(startAt until startAt + subPacketLength).toString())
+                startAt += subPacketLength
+            }
+            subPackets.forEach {
+                version += parsePacket(it)
+            }
+            println("Result")
+        } else {
+            val totalLengthInBits = binaryToInt(binaryString.subSequence((7..6 + subPacketLength)))
+//            return version + parsePacket(binaryString.subSequence(startAt until binaryString.length).toString())
+        }
+    }
+    return version
+}
+
+
+fun hexToBinary(hex: String): String {
+    val i = hex.toInt(16)
+    return Integer.toBinaryString(i)
+}
+
+fun binaryToInt(binary: String): Int {
+    return binary.toInt(2)
+}
+
+fun binaryToInt(binary: CharSequence): Int {
+    return binary.toString().toInt(2)
+}
+
+fun day15Puzzle1() {
+    val list = readFileAsLinesUsingUseLines("inputs/puzzle_15_1.txt")
+    val grid = list.map { it.map { Node15(UUID.randomUUID().toString(), it.digitToInt()) } }.toTypedArray()
+    val newGrid = Array(grid.size * 5) { Array(grid.size * 5) { Node15("", 0) } }
+    var xGrid = 0
+    var yGrid = 0
+    (0 until newGrid.size).forEach { y ->
+        (0 until newGrid.size).forEach { x ->
+            if (grid.size == (y - grid.size * yGrid)) yGrid++
+            if (grid.size == (x - grid.size * xGrid)) xGrid++
+            val oldY = y - grid.size * yGrid
+            val oldX = x - grid.size * xGrid
+            val increaseBy = xGrid + yGrid
+            val oldNode = grid[oldY][oldX]
+            newGrid[y][x] = Node15(UUID.randomUUID().toString(), increaseBy(oldNode.ownRisk, increaseBy))
+        }
+        xGrid = 0
+    }
+    newGrid.forEachIndexed { y, line ->
+        line.forEachIndexed { x, value ->
+            if (x < newGrid[0].size - 1) {
+                val destination = newGrid[y][x + 1]
+                newGrid[y][x].addDestination(destination, destination.ownRisk)
+            }
+            if (y < newGrid.size - 1) {
+                val destination = newGrid[y + 1][x]
+                newGrid[y][x].addDestination(destination, destination.ownRisk)
+            }
+            if (x > 0) {
+                val destination = newGrid[y][x - 1]
+                newGrid[y][x].addDestination(destination, destination.ownRisk)
+            }
+            if (y > 0) {
+                val destination = newGrid[y - 1][x]
+                newGrid[y][x].addDestination(destination, destination.ownRisk)
+            }
+        }
+    }
+    var graph = Graph()
+    newGrid.forEach { it.forEach { graph.addNode(it) } }
+
+    graph = calculateShortestPathFromSource(graph, newGrid[0][0])
+//    var result = allPathRisks.minOrNull()!! - newGrid[0][0]
+    var result = 0
+    val endNode = newGrid[newGrid.size - 1][newGrid[0].size - 1]
+    endNode.shortestPath.forEach { result += it.ownRisk }
+    result -= newGrid[0][0].ownRisk
+    result += endNode.ownRisk
+    println("Result: ${endNode.distance} ${result}")
+
+    newGrid.forEach {
+        it.forEach { print(if (endNode.shortestPath.contains(it) || it == endNode) "X" else "_") }
+        println()
+    }
+
+}
+
+fun calculateShortestPathFromSource(graph: Graph, source: Node15): Graph {
+    source.distance = 0
+    val settledNodes: MutableSet<Node15> = HashSet()
+    val unsettledNodes: MutableSet<Node15> = HashSet()
+    unsettledNodes.add(source)
+    while (unsettledNodes.size != 0) {
+        val currentNode: Node15 = getLowestDistanceNode(unsettledNodes)!!
+        unsettledNodes.remove(currentNode)
+        for ((adjacentNode: Node15, edgeWeight: Int) in currentNode.adjacentNodes.entries) {
+            if (!settledNodes.contains(adjacentNode)) {
+                calculateMinimumDistance(adjacentNode, edgeWeight, currentNode)
+                unsettledNodes.add(adjacentNode)
+            }
+        }
+        settledNodes.add(currentNode)
+    }
+    return graph
+}
+
+private fun getLowestDistanceNode(unsettledNodes: Set<Node15>): Node15? {
+    var lowestDistanceNode: Node15? = null
+    var lowestDistance = Int.MAX_VALUE
+    for (node in unsettledNodes) {
+        val nodeDistance: Int = node.distance
+        if (nodeDistance < lowestDistance) {
+            lowestDistance = nodeDistance
+            lowestDistanceNode = node
+        }
+    }
+    return lowestDistanceNode
+}
+
+private fun calculateMinimumDistance(
+    evaluationNode: Node15,
+    edgeWeigh: Int, sourceNode: Node15
+) {
+    val sourceDistance: Int = sourceNode.distance
+    if (sourceDistance + edgeWeigh < evaluationNode.distance) {
+        evaluationNode.distance = sourceDistance + edgeWeigh
+        val shortestPath: LinkedList<Node15> = LinkedList(sourceNode.shortestPath)
+        shortestPath.add(sourceNode)
+        evaluationNode.shortestPath = shortestPath
+    }
+}
+
+class Graph {
+    private val nodes: MutableSet<Node15> = HashSet()
+    fun addNode(nodeA: Node15) {
+        nodes.add(nodeA)
+    } // getters and setters
+}
+
+class Node15(private val name: String, val ownRisk: Int) {
+    var shortestPath: List<Node15> = LinkedList()
+    var distance = Int.MAX_VALUE
+    var adjacentNodes: MutableMap<Node15, Int> = HashMap()
+    fun addDestination(destination: Node15, distance: Int) {
+        adjacentNodes[destination] = distance
+    }
+}
+
+fun increaseBy(startValue: Int, increaseBy: Int): Int {
+    val newValue = startValue + increaseBy;
+    return if (newValue > 9) {
+        newValue - 9
+    } else {
+        newValue
+    }
+}
+
+fun day14Puzzle2() {
+    val list = readFileAsLinesUsingUseLines("inputs/puzzle_14_patrick.txt")
+    var polymer: String = list[0]
+    var input = (2 until list.size).map { list.get(it) }
+        .map { it.split(" -> ") }.map { Pair(it[0], it[1]) }
+
+    val pairs = mutableMapOf<String, Long>()
+    (0 until polymer.length).forEach {
+        if (it + 1 != polymer.length) {
+            val key = "${polymer[it]}${polymer[it + 1]}"
+            increment(pairs, key)
+        }
+    }
+    (1..40).forEach {
+        val pairsToIncrement = mutableListOf<Pair<String, Long>>()
+        val pairsToDecrement = mutableListOf<Pair<String, Long>>()
+        input.forEach {
+            val pairCount = pairs[it.first]
+            if (pairCount != null) {
+                val firstPair = it.first[0] + it.second
+                val secondPair = it.second + it.first[1]
+                pairsToIncrement.add(Pair(firstPair, pairCount))
+                pairsToIncrement.add(Pair(secondPair, pairCount))
+                pairsToDecrement.add(Pair(it.first, pairCount))
+            }
+        }
+        pairsToIncrement.forEach { increment(pairs, it.first, it.second) }
+        pairsToDecrement.forEach { decrement(pairs, it.first, it.second) }
+        println("Iteration: $it")
+    }
+    val result = mutableMapOf<Char, Long>()
+    pairs.forEach {
+        increment(result, it.key[0], it.value)
+        increment(result, it.key[1], it.value)
+    }
+    val resultValue = (result.values.maxOrNull()!! / 2) - (result.values.minOrNull()!! / 2) + 1
+    println("Result $resultValue")
+}
+
+fun <K> increment(map: MutableMap<K, Long>, key: K, incrementBy: Long = 1) {
+    when (val count = map[key]) {
+        null -> map[key] = incrementBy
+        else -> map[key] = count + incrementBy
+    }
+}
+
+fun <K> decrement(map: MutableMap<K, Long>, key: K, decrementBy: Long = 1) {
+    when (val count = map[key]) {
+        null -> return
+        decrementBy -> map.remove(key)
+        else -> map[key] = count - decrementBy
+    }
+}
+
+
+fun day14Puzzle1() {
+    val list = readFileAsLinesUsingUseLines("inputs/puzzle_14_1.txt")
+    var polymer: String = list[0]
+    var input = (2 until list.size).map { list.get(it) }
+        .map { it.split(" -> ") }.map { Pair(it[0], it[1]) }
+
+    (1..40).forEach {
+        val newElements = mutableListOf<Pair<Int, String>>()
+        input.forEach { pair ->
+            var index = polymer.indexOf(pair.first)
+            while (index >= 0) {
+                val element = Pair(index + 1, pair.second)
+                newElements.add(element)
+                index = polymer.indexOf(pair.first, startIndex = index + 1)
+            }
+        }
+        val newPolymer = StringBuilder(polymer)
+        var indexShift = 0
+        val sortedNewElementsMap = newElements.groupBy { it.first to it.second }.toMap()
+            .mapValues { it.value.map { it.second }.joinToString { it } }
+            .mapKeys { it.key.first }
+            .toSortedMap()
+        sortedNewElementsMap.forEach {
+            newPolymer.insert(indexShift + it.key, it.value)
+            indexShift += it.value.length
+        }
+        polymer = newPolymer.toString()
+        println("Iteration $it")
+    }
+    val result = polymer.groupingBy { it }.eachCount().values.toList().sorted()
+    println("Result ${result[result.size - 1] - result[0]}")
+
+}
+
+fun day13Puzzle1() {
+    val list = readFileAsLinesUsingUseLines("inputs/puzzle_13_1.txt")
+    val foldIndex = list.indexOfFirst { it.contains("fold") }
+    val points = (0 until foldIndex - 1).map {
+        var pointArray = list.get(it).split(",").map { it.toInt() }
+        Point(pointArray[0], pointArray[1])
+    }
+    val foldInstructions = (foldIndex until list.size).map { list.get(it) }
+        .map { it.replace("fold along ", "") } // y=8 x=6 ....
+    val maxX = points.maxByOrNull { it.x }!!.x + 1
+    val maxY = points.maxByOrNull { it.y }!!.y + 1
+    val field = Array<Array<String?>>(maxY) { Array(maxX) { null } }
+
+    points.forEach {
+        field[it.y][it.x] = "#"
+    }
+//    listOf(foldInstructions.first()).map { it.split("=") }.forEach {
+    foldInstructions.map { it.split("=") }.forEach {
+        val foldBy = it[0]
+        val foldLine = it[1].toInt()
+        if (foldBy == "y") {
+            (foldLine + 1 until field.size).forEach {
+                val newIdx = foldLine - (it - foldLine)
+                if (newIdx < 0) {
+                    return@forEach
+                }
+                field[it].forEachIndexed { idx, value ->
+                    if (field[newIdx][idx] != "#") {
+                        field[newIdx][idx] = value
+                    }
+                    field[it][idx] = null
+                }
+            }
+            field[foldLine].forEachIndexed { idx, value -> field[foldLine][idx] = null }
+        }
+
+        if (foldBy == "x") {
+            (foldLine + 1 until field[0].size).forEach {
+                val newIdx = foldLine - (it - foldLine)
+                if (newIdx < 0) {
+                    return@forEach
+                }
+                field.forEachIndexed { idx, value ->
+                    if (field[idx][newIdx] != "#") {
+                        field[idx][newIdx] = field[idx][it]
+                    }
+                    field[idx][it] = null
+                }
+            }
+            field[foldLine].forEachIndexed { idx, value -> field[foldLine][idx] = null }
+        }
+    }
+    val writer = File("result_13_2.txt").printWriter()
+    field.forEach {
+        writer.println(it.joinToString { it ?: "_" })
+//        it.forEach {
+//            print(it ?: "_")
+//        }
+//        println()
+    }
+    val result = field.flatMap { it.toList() }.filterNotNull().count()
+
+    print("Result: $result")
+
+}
+
+fun day12Puzzle1() {
+    val smallCaves = ("a".."z")
+    val list = readFileAsLinesUsingUseLines("inputs/puzzle_12_1.txt")
+    val uniqueNodes: Map<String, Node> = list.flatMap { it.split("-") }.distinct()
+        .map { Node(it, smallCaves.contains(it)) }
+        .map { it.name to it }.toMap()
+    list.map { it.split("-") }.forEach {
+        val start = it[0]
+        val end = it[1]
+        uniqueNodes[start]?.connect(uniqueNodes[end]!!)
+    }
+    val startNode = uniqueNodes["start"]!!
+    val endNode = uniqueNodes["end"]!!
+    endNode.smallNode = false
+    val paths = mutableListOf<String>()
+    uniqueNodes.values.filter { it.smallNode }.filter { it != startNode && it != endNode }.forEach {
+        paths.addAll(traverseGraph(startNode, mutableListOf(), it))
+    }
+    val result = paths.filter { it.contains("end") }
+        .distinct()
+        .sorted()
+    result.forEach {
+        println(it)
+    }
+    println("Found ${result.size} paths")
+
+}
+
+fun traverseGraph(
+    startNode: Node,
+    lastNodes: List<Node>,
+    allowedDuplicate: Node
+): List<String> {
+    val smallNodesVisited = lastNodes.filter { it.smallNode }.groupingBy { it }.eachCount()
+    val availableNodes = startNode.connectedTo.filter {
+        val timesVisited = smallNodesVisited[it]
+        val canVisit = timesVisited == null || (it == allowedDuplicate && timesVisited == 1)
+        canVisit
+    }
+    if (availableNodes.isEmpty() || startNode.name == "end") {
+        return listOf(startNode.name)
+    }
+    val paths = mutableListOf<String>()
+    availableNodes.forEach {
+        val newLastNodes = mutableListOf(startNode)
+        newLastNodes.addAll(lastNodes)
+        paths.addAll(traverseGraph(it, newLastNodes, allowedDuplicate))
+    }
+    return paths.map { "${startNode.name},$it" }
+}
+
+fun traverseGraph(
+    startNode: Node,
+    uniqueNodes: Collection<Node>,
+    parentNode: List<Node>,
+    allowedDuplicate: Node
+): List<String> {
+    startNode.visited = true
+    val availableNodes =
+        startNode.connectedTo.filter { !(it.smallNode && it.visited) }.filter { it.name != "start" }.toMutableList()
+    if (parentNode.count { it == allowedDuplicate } == 1 && startNode.connectedTo.contains(allowedDuplicate)) {
+        availableNodes.add(allowedDuplicate)
+    }
+    if (availableNodes.isEmpty() || startNode.name == "end") {
+        return listOf(startNode.name)
+    }
+    val paths = mutableListOf<String>()
+    availableNodes.forEach {
+        uniqueNodes.filter { it != startNode && !parentNode.contains(it) }.forEach { it.visited = false }
+        startNode.visited = true
+        val mutableListOf = mutableListOf(startNode)
+        mutableListOf.addAll(parentNode)
+        paths.addAll(traverseGraph(it, uniqueNodes, mutableListOf, allowedDuplicate))
+    }
+    return paths.map { "${startNode.name},$it" }
+}
+
+class Node(
+    val name: String,
+    var smallNode: Boolean,
+    var visited: Boolean = false,
+    val connectedTo: MutableList<Node> = mutableListOf()
+) {
+    fun connect(node: Node) {
+        if (name == "start") {
+            connectedTo.add(node)
+        } else if (name == "end") {
+            node.connectedTo.add(this)
+        } else if (node.name == "start") {
+            node.connectedTo.add(this)
+        } else if (node.name == "end") {
+            connectedTo.add(node)
+        } else {
+            connectedTo.add(node)
+            node.connectedTo.add(this)
+        }
+    }
+
+    fun resetVisited(node: Node) {
+        visited = false
+        connectedTo.filter { it != node }.forEach {
+            it.resetVisited(this)
+        }
+    }
+}
+
+fun day11Puzzle1() {
+    val list = readFileAsLinesUsingUseLines("inputs/puzzle_11_1.txt")
+    val grid: List<MutableList<Int>> = list.map { it.toCharArray().map { it.digitToInt() }.toMutableList() }
+    val flashGrid = Array(grid.size) { Array(grid[0].size) { false } }
+    var countFlashes = 0
+    var allFlashed = false
+    var roundCounter = 0
+    while (!allFlashed) {
+        roundCounter++
+        grid.forEachIndexed { indexRow, row ->
+            row.forEachIndexed { indexColumn, fish ->
+                grid[indexRow][indexColumn] += 1
+            }
+        }
+        grid.forEachIndexed { indexRow, row ->
+            row.forEachIndexed { indexColumn, fish ->
+                if (fish == 10) {
+                    grid[indexRow][indexColumn] -= 1 //remove one as method will add it again
+                    countFlashes += flashAndIncrease(grid, flashGrid, indexRow, indexColumn)
+                }
+            }
+        }
+        val flashesThisRound = flashGrid.flatMap { row -> row.toList() }.count { it }
+        countFlashes += flashesThisRound
+        allFlashed = flashesThisRound == grid.size * grid[0].size
+        grid.forEachIndexed { indexRow, row ->
+            row.forEachIndexed { indexColumn, fish ->
+                if (grid[indexRow][indexColumn] > 9)
+                    grid[indexRow][indexColumn] = 0
+                flashGrid[indexRow][indexColumn] = false
+            }
+        }
+        printGrid(grid)
+        println("Flashes: $flashesThisRound")
+    }
+    println("Result $countFlashes")
+    println("After $roundCounter all flahsed")
+}
+
+fun printGrid(grid: List<MutableList<Int>>) {
+    println()
+    println("Grid:")
+    grid.forEach {
+        it.forEach { print(it) }
+        println()
+    }
+}
+
+fun flashAndIncrease(
+    grid: List<MutableList<Int>>,
+    flashGrid: Array<Array<Boolean>>,
+    indexRow: Int,
+    indexColumn: Int
+): Int {
+    var flashes = 0;
+    grid[indexRow][indexColumn] += 1 //some neighbour flashed
+    if (grid[indexRow][indexColumn] > 9 && !flashGrid[indexRow][indexColumn]) {
+        flashGrid[indexRow][indexColumn] = true
+        if (indexRow != 0)
+            flashAndIncrease(grid, flashGrid, indexRow - 1, indexColumn) else 0 //up
+        if (indexRow < grid.size - 1)
+            flashAndIncrease(grid, flashGrid, indexRow + 1, indexColumn) else 0 //down
+        if (indexColumn != 0)
+            flashAndIncrease(grid, flashGrid, indexRow, indexColumn - 1) else 0 //left
+        if (indexColumn < grid[indexRow].size - 1)
+            flashAndIncrease(grid, flashGrid, indexRow, indexColumn + 1) else 0 //right
+        if (upLeft(indexRow, indexColumn))
+            flashAndIncrease(grid, flashGrid, indexRow - 1, indexColumn - 1) else 0 //up left
+        if (upRight(indexRow, indexColumn, grid))
+            flashAndIncrease(grid, flashGrid, indexRow - 1, indexColumn + 1) else 0 //up right
+        if (downLeft(indexRow, grid, indexColumn))
+            flashAndIncrease(grid, flashGrid, indexRow + 1, indexColumn - 1) else 0 //down left
+        if (downRight(indexRow, grid, indexColumn))
+            flashAndIncrease(grid, flashGrid, indexRow + 1, indexColumn + 1) else 0 //down left
+    }
+    return flashes
+}
+
+private fun upLeft(indexRow: Int, indexColumn: Int) = indexRow != 0 && indexColumn != 0
+
+private fun upRight(
+    indexRow: Int,
+    indexColumn: Int,
+    grid: List<MutableList<Int>>
+) = indexRow != 0 && indexColumn < grid[indexRow].size - 1
+
+private fun downLeft(
+    indexRow: Int,
+    grid: List<MutableList<Int>>,
+    indexColumn: Int
+) = indexRow < grid.size - 1 && indexColumn != 0
+
+private fun downRight(
+    indexRow: Int,
+    grid: List<MutableList<Int>>,
+    indexColumn: Int
+) = indexRow < grid.size - 1 && indexColumn < grid[indexRow].size - 1
+
+fun day9Puzzle2() {
+    val list = readFileAsLinesUsingUseLines("inputs/puzzle_9_1.txt")
+    val field: Array<Array<Int>> =
+        list.map { it.toCharArray().map { it.digitToInt() }.toTypedArray() }.toTypedArray()
+    val lowPoints = mutableListOf<Point>()
+    field.forEachIndexed { lineIdx, line ->
+        line.forEachIndexed { rowIdx, char ->
+            val top = if (lineIdx == 0) Int.MAX_VALUE else field[lineIdx - 1][rowIdx]
+            val bottom = if (lineIdx == list.size - 1) Int.MAX_VALUE else field[lineIdx + 1][rowIdx]
+            val left = if (rowIdx == 0) Int.MAX_VALUE else field[lineIdx][rowIdx - 1]
+            val right = if (rowIdx == list[lineIdx].length - 1) Int.MAX_VALUE else field[lineIdx][rowIdx + 1]
+            if (char < top && char < bottom && char < left && char < right) {
+                lowPoints.add(Point(lineIdx, rowIdx))
+            }
+        }
+    }
+    val basins = mutableListOf<Set<Point>>()
+    lowPoints.forEach {
+        val basin = mutableSetOf<Point>()
+        basin(field, it.x, it.y, basin)
+        basins.add(basin)
+    }
+    basins.sortByDescending { it.size }
+    val result1 = basins[0].size
+    val result2 = basins[1].size
+    val result3 = basins[2].size
+
     println("Result1: ${result1}")
     println("Result2: ${result2}")
     println("Result3: ${result3}")
-    println("Result: ${result1.second * result2.second * result3.second}")
+    println("Result: ${result1 * result2 * result3}")
 }
 
-fun findBasilSize(field:Array<List<Int>>, startLine:Int, startRow:Int): Pair<IntRange, Int> {
-    if(startLine == field.size) return Pair((startRow..startRow), 0)
-    if(field[startLine][startRow] == 9) return Pair((startRow..startRow), 0)
+fun basin(field: Array<Array<Int>>, x: Int, y: Int, values: MutableSet<Point>) {
+    if (field[x][y] == 9) {
+        return
+    }
+    values.add(Point(x, y))
+    if (x != 0 && field[x - 1][y] > field[x][y]) {
+        basin(field, x - 1, y, values) //above
+    }
+    if (x != 99 && field[x + 1][y] > field[x][y]) {
+        basin(field, x + 1, y, values) //below
+    }
+    if (y != 0 && field[x][y - 1] > field[x][y]) {
+        basin(field, x, y - 1, values) //left
+    }
+    if (y != 99 && field[x][y + 1] > field[x][y]) {
+        basin(field, x, y + 1, values) //right
+    }
+}
+
+fun day10Puzzle1() {
+    val list = readFileAsLinesUsingUseLines("inputs/puzzle_10_1.txt")
+
+    val openBrackets = listOf('(', '[', '{', '<')
+    val syntaxErrors = mutableListOf<Char>()
+    val missingBrackets = mutableListOf<List<Char>>()
+    list.forEach { line ->
+        var nextToClose: Stack<Char> = Stack()
+        var syntaxError = false
+        line.forEach {
+            if (openBrackets.contains(it)) {
+                nextToClose.push(
+                    when (it) {
+                        '(' -> ')'
+                        '{' -> '}'
+                        '[' -> ']'
+                        '<' -> '>'
+                        else -> throw IllegalArgumentException()
+                    }
+                )
+            } else {
+                val charToClose = nextToClose.pop()
+                if (charToClose != it) {
+                    syntaxErrors.add(it)
+                    syntaxError = true
+                    return@forEach
+                }
+            }
+        }
+        if (!syntaxError && nextToClose.size > 0) {
+            missingBrackets.add(nextToClose.toList().reversed())
+        }
+    }
+    var result = 0L
+
+    val sortedList = missingBrackets.map {
+        var lineResult = 0L
+        it.map {
+            when (it) {
+                ')' -> 1
+                ']' -> 2
+                '}' -> 3
+                '>' -> 4
+                else -> throw IllegalStateException()
+            }
+        }.forEach {
+            lineResult = lineResult * 5
+            lineResult += it
+        }
+        lineResult
+    }.sorted()
+    result = sortedList[sortedList.size / 2]
+    println("Result: ${result}")
+}
+
+fun findBasilSize(field: Array<Array<Int?>>, startLine: Int, startRow: Int): Pair<IntRange, Int> {
+    if (startLine == field.size) return Pair((startRow..startRow), 0)
+    if (field[startLine][startRow] == 9 || field[startLine][startRow] == null) return Pair((startRow..startRow), 0)
     val basinStartIdx = (0..startRow).reversed().firstOrNull { field[startLine][it] == 9 }?.plus(1) ?: 0
     val basinEndIdx =
-        (startRow until field[startLine].size).firstOrNull { field[startLine][it] == 9 }?.minus(1) ?: field[startLine].size - 1
-    println("For ${startLine} $startRow found ${(basinStartIdx .. basinEndIdx)}")
+        (startRow until field[startLine].size).firstOrNull { field[startLine][it] == 9 }?.minus(1)
+            ?: field[startLine].size - 1
+//    println("For ${startLine} $startRow found ${(basinStartIdx..basinEndIdx)}")
     val nextBasin = (basinStartIdx..basinEndIdx).map { findBasilSize(field, startLine + 1, it) }
         .groupBy { it.first }
-        .values.map { it.map { it.second }.maxOrNull()?: 0 }
+        .values.map { it.map { it.second }.maxOrNull() ?: 0 }
         .sumOf { it }
-    return Pair((basinStartIdx .. basinEndIdx),(basinStartIdx .. basinEndIdx).count() + nextBasin)
+    (basinStartIdx..basinEndIdx).forEach { field[startLine][it] = null }
+    return Pair((basinStartIdx..basinEndIdx), (basinStartIdx..basinEndIdx).count() + nextBasin)
 }
 
 
